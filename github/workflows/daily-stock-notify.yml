@@ -1,0 +1,35 @@
+name: Daily stock notifier
+
+on:
+  schedule:
+    # Runs daily at 03:00 UTC — change this cron to your preferred UTC time
+    - cron: '0 03 * * *'
+  workflow_dispatch: {}
+
+jobs:
+  run-daily-stock-notifier:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          else
+            pip install yfinance pandas requests python-telegram-bot
+          fi
+
+      - name: Run stock notifier
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: |
+          python stock_automation.py
